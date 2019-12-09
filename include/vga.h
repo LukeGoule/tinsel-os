@@ -10,19 +10,20 @@
 #define CHAR_WIDTH  8
 #define CHAR_HEIGHT 16
 
-struct vga_info {
+typedef struct vga_info_t {
     uint32_t* frame;
     uint32_t pitch;
     uint32_t width      = 0x0;
     uint32_t height     = 0x0;
     uint32_t bitdepth   = 0x0;
 };
-typedef vga_info vga_info_t;
 
 void vga_install    (multiboot_info_t* mbi);
 void vga_plotpixel  (uint32_t x, uint32_t y, uint32_t clr);
 void vga_prims_box  (uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t clr);
 void vga_printc     (char c, uint32_t x, uint32_t y, uint32_t fg_clr, uint32_t bg_clr);
-vga_info_t* vga_get_info();
+vga_info_t*
+     vga_get_info   ();
+bool CMD_vgatest    (int argc, char** argv);
 
 #endif

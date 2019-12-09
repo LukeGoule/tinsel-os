@@ -3,7 +3,7 @@
 
 #include <cdefs.h>
 
-#define MAX_MEMORY_BLOCKS 512 // gotta be a constant for now i'm afraid.
+#define MAX_MEMORY_BLOCKS 2048 // gotta be a constant for now i'm afraid.
 
 extern uint32_t end_sym;
 
@@ -20,6 +20,11 @@ void    kfree               (void* allocated_position);
 size_t  kmalloc_used_bytes  ();
 size_t  kmalloc_used_blocks ();
 size_t  kmalloc_unused_blocks();
-bool    CMD_kmalloc         (char* inp);
+bool    CMD_kmalloc         (int argc, char** argv);
+
+void *operator new(size_t size);
+void *operator new[](size_t size);
+void operator delete(void *p);
+void operator delete[](void *p);
 
 #endif

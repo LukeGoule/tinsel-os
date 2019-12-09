@@ -4,7 +4,7 @@
 #include <cdefs.h>
 #include <input.h>
 
-typedef bool (cmd_callback_t)(char* inp);
+typedef bool (cmd_callback_t)(int argc, char** argv);
 
 typedef struct command_t {
     const char* cmd;
@@ -15,5 +15,6 @@ typedef struct command_t {
 void    KCreateCommand  (const char* cmd, cmd_callback_t* callback);
 void    KCreateCommand  (const char* cmd, cmd_callback_t* callback, const char* helptext);
 bool    KFindCommand    (const char* cmd, command_t &output);
-bool    CMD_Help        (char* inp);
+bool    CMD_Help        (int argc, char** argv);
+
 #endif
