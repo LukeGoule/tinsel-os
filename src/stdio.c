@@ -86,6 +86,7 @@ Implementation of %<code>:
     %2 => red
     %3 => green
     %4 => blue
+    %5 => orange
 */
 void printf(const char* format, ...) {
     char **arg = (char**) &format;
