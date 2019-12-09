@@ -7,7 +7,7 @@ LDFLAGS = -m elf_i386 -T src/linker.ld
 EMULATOR = qemu-system-i386
 EFLAGS = -m 512 -vga std -display gtk -s -netdev user,id=vmnic -device rtl8139,netdev=vmnic -machine type=q35,accel=kvm -cpu host,check -smp 12 -enable-kvm
 KVERSION = tinsel_0
-OBJS = obj/kmainasm.o obj/kmainc.o obj/vga.o obj/stdio.o obj/input.o obj/acpi.o
+OBJS = obj/kmainasm.o obj/kmainc.o obj/vga.o obj/stdio.o obj/input.o obj/acpi.o obj/cpu.o obj/memory.o obj/shell_cmd.o
 OUTPUT = tinsel_grub/boot/$(KVERSION).bin
 
 run: all
@@ -45,3 +45,15 @@ obj/input.o:src/input.c
 obj/acpi.o:src/acpi.c
 	@$(COMPILER) $(CFLAGS) -o obj/acpi.o src/acpi.c
 	@echo "[COMPILE]: acpi.c"
+
+obj/cpu.o:src/cpu.c
+	@$(COMPILER) $(CFLAGS) -o obj/cpu.o src/cpu.c
+	@echo "[COMPILE]: cpu.c"
+
+obj/memory.o:src/memory.c
+	@$(COMPILER) $(CFLAGS) -o obj/memory.o src/memory.c
+	@echo "[COMPILE]: memory.c"
+
+obj/shell_cmd.o:src/shell_cmd.c
+	@$(COMPILER) $(CFLAGS) -o obj/shell_cmd.o src/shell_cmd.c
+	@echo "[COMPILE]: shell_cmd.c"

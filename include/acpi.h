@@ -153,5 +153,6 @@ void acpi_init();
 void acpi_reboot();
 void acpi_poweroff();
 
+bool CMD_Shutdown(char* inp);
 
 #endif

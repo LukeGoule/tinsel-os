@@ -53,3 +53,12 @@ void vga_printc(char c, uint32_t x, uint32_t y, uint32_t fg_clr, uint32_t bg_clr
 vga_info_t* vga_get_info() {
     return &vga;
 }
+
+bool CMD_vgatest(char* inp) {
+
+    /*
+    TODO: some stuff here that shows we can do basic drawing with my simple vga library.
+    */
+
+    return true;
+}

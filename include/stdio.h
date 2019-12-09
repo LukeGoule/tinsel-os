@@ -30,6 +30,8 @@ void        itoa        (char *buf, int base, int d);
 size_t      strlen      (const char* str);
 size_t      strcmp      (const char* s1, const char* s2);
 size_t      strcmpl     (const char* s1, const char* s2, size_t d);
+void        strcpy      (char *d, char *s);
+
 uint8_t     inportb     (uint16_t port);
 void        outportb    (uint16_t port, uint8_t data);
 
@@ -39,6 +41,6 @@ void        outportw    (uint16_t port, uint16_t value);
 uint32_t    inportl     (uint16_t port);
 void        outportl    (uint16_t port, uint32_t value);
 
-void stdio_debug_tests();
+bool        CMD_StdioTest(char* inp);
 
 #endif

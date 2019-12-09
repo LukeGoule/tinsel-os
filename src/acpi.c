@@ -179,3 +179,11 @@ void acpi_poweroff() {
 
    	printf("acpi poweroff failed.\n");
 }
+
+// Command callback to shutdown the system.
+bool CMD_Shutdown(char* inp) {
+
+    acpi_poweroff();
+
+    return false;
+}

@@ -233,6 +233,11 @@ size_t strcmpl(const char* s1, const char* s2, size_t d) {
 	return 0;
 }
 
+void strcpy(char *d, char *s) {
+   while(*d++ = *s++)
+      ;
+}
+
 uint8_t inportb(uint16_t port) {
 	uint8_t ret;
 	__asm__ __volatile__ ("inb %1, %0" : "=a" (ret) : "dN" (port));
@@ -260,10 +265,13 @@ void outportl(uint16_t port, uint32_t value) {
 	asm volatile("outl %%ax, %%dx": :"d" (port), "a" (value));
 }
 
-void stdio_debug_tests() {
+// Command callback to show stdio.c tests.
+bool CMD_StdioTest(char* inp) {
     printf("[%5Float%0]:  %f\n", 0.100); // expect 0.1000000
     printf("[%5Hex%0]:    0x%x\n", 100);   // expect 0x64
     printf("[%5Int%0]:    %d\n", 100);
     printf("[%5strlen%0]: %d\n", strlen("hello")); // expect 5
     printf("[%5VGAPtr%0]: 0x%x\n", (uint32_t)vga_get_info());
+
+    return true;
 }
