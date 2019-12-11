@@ -5,7 +5,6 @@
 
 #include <cdefs.h>
 
-uint8_t input_getscancode();
-char* input_getchar();
+char* scan_2_char(uint8_t c);
 
 #endif

@@ -1,18 +1,25 @@
 #include <cdefs.h>
 #include <kernel.h>
 #include <multiboot.h>
+#include <exceptions.h>
 #include <vga.h>
 #include <stdio.h>
 #include <input.h>
 #include <acpi.h>
 #include <cpu.h>
-#include <memory.h>
+#include <memory>
 #include <shell_cmd.h>
 #include <rtc.h>
+#include <ata.h>
+#include <pci.h>
+#include <mouse.h>
+#include <windows.h>
+
+extern "C" void gdt_install();
 
 multiboot_info_t* info = NULL;
 
-// things for me to read:
+// things to read:
 //  https://www.aldeid.com/wiki/X86-assembly/Instructions/rdtsc
 //  https://wiki.osdev.org/Model_Specific_Registers
 
@@ -74,7 +81,7 @@ bool CMD_Info(int argc, char** argv) {
     size_t unused_blocks = kmalloc_unused_blocks();
 
     if (!test_rtc) {
-        test_rtc = (RealTimeClock*)kmalloc(sizeof(RealTimeClock));
+        test_rtc = new RealTimeClock();
     }
 
     test_rtc->read_rtc();
@@ -94,14 +101,56 @@ bool CMD_Info(int argc, char** argv) {
     return true;
 }
 
+bool CMD_ForceBreak(int argc, char** argv) {
+    int i = 0 / 0; // won't be caught by the compiler, causes an exception that //should// be ignored and continued on with.
+    return true;
+}
+
+void khandle_character(char* next_char) {
+    // ignore some characters
+    if (next_char == "\0" ||
+        next_char[0] == '\0' ||
+        (strcmp(next_char, "<CAPSL>") == 0)  ||
+        (strcmp(next_char, "<LSHIFT>") == 0) ||
+        (strcmp(next_char, "<RSHIFT>") == 0) ||
+        (strcmp(next_char, "<LALT>") == 0)   ||
+        (strcmp(next_char, "<LCTRL>") == 0)  ||
+        (strcmp(next_char, "<RCTRL>") == 0)) return;
+
+    if (next_char[0] == '\n') { // when the user presses enter, execute what they typed.
+        if (exec_cmd()) printf("tinsel> ");
+    }
+    else if (next_char[0] == '\b' && (iter > 0)) { // backspace
+        cursor_backspace();
+
+        iter--;
+        buf[iter] = '\0';
+    }
+    else {
+        if (next_char[0] == '\b' && (iter == 0)) return;
+
+        printf("%s", next_char);
+        buf[iter] = next_char[0];
+        iter++;
+    }
+}
+
+extern "C" void cpp_kbd_handler(void) {
+    uint8_t c = inportb(0x60);
+    char* next_char = scan_2_char(c);
+    khandle_character(next_char);
+}
+
 extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
     info = mbi;
 
-    vga_install (mbi);
-    acpi_init   ();
-    memory_init (0x100000); // starting offset of 0x100000
-
-    CMD_cls(0,0);
+    memory_init     (0x100000); // Kernel memory manager
+    gdt_install     ();         // GDT
+    mouse_install   ();         // Talk to mouse (must be before ISR)
+    isr_init        ();         // ISR
+    vga_install     (mbi);      // VGA Graphics stuff
+    acpi_init       ();         // Enable ACPI for shutdown
+    win_init        ();         // Setup the basic window manager
 
     // Setup commands.
     KCreateCommand("help",          CMD_Help        /*shell_cmd.cpp*/,  "Show helptext of each command.");
@@ -116,40 +165,17 @@ extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
     KCreateCommand("acpi_debug",    CMD_ACPI_debug  /*acpi.cpp*/,       "Show debug information for ACPI code.");
     KCreateCommand("time",          CMD_Time        /*rtc.cpp*/,        "Show the time.");
     KCreateCommand("cls",           CMD_cls         /*stdio.cpp*/,      "Clear the screen.");
+    KCreateCommand("_forcebrk",     CMD_ForceBreak  /*kernel.cpp*/,     "Create an exception.");
+    KCreateCommand("ata",           CMD_ata         /*ata.cpp*/,        "Some ATA tests.");
+    KCreateCommand("pci",           CMD_pci         /*pci.cpp*/,        "PCI bus controller (-D -B -S -RTL).");
+    KCreateCommand("refresh",       CMD_refresh_win /*windows.cpp*/,    "Refresh the windows.");
 
     printf("%3tinsel v1%0 ready.\ntinsel> ");
 
     buf = (char*)kmalloc(MAX_INPUT_LEN);
 
     while (!die) {
-        char* next_char = input_getchar();
-
-        // ignore some characters
-        if (next_char == "\0" ||
-			next_char[0] == '\0' ||
-			(strcmp(next_char, "<CAPSL>") == 0)  ||
-			(strcmp(next_char, "<LSHIFT>") == 0) ||
-			(strcmp(next_char, "<RSHIFT>") == 0) ||
-			(strcmp(next_char, "<LALT>") == 0)   ||
-            (strcmp(next_char, "<LCTRL>") == 0)  ||
-            (strcmp(next_char, "<RCTRL>") == 0)) continue;
-
-        if (next_char[0] == '\n') { // when the user presses enter, execute what they typed.
-            if (exec_cmd()) printf("tinsel> ");
-        }
-        else if (next_char[0] == '\b' && (iter > 0)) { // backspace
-            cursor_backspace();
-
-            iter--;
-            buf[iter] = '\0';
-        }
-        else {
-            if (next_char[0] == '\b' && (iter == 0)) continue;
-
-            printf("%s", next_char);
-            buf[iter] = next_char[0];
-            iter++;
-        }
+        win_main();
     }
 
     return;

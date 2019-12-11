@@ -91,7 +91,7 @@ RealTimeClock* cmd_clock = NULL;
 
 bool CMD_Time(int argc, char** argv) {
 	if (!cmd_clock) {
-		cmd_clock = (RealTimeClock*)kmalloc(sizeof(RealTimeClock));
+		cmd_clock = new RealTimeClock();
 	}
 
 	cmd_clock->read_rtc();

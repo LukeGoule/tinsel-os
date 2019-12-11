@@ -18,6 +18,11 @@ void vga_plotpixel(uint32_t x, uint32_t y, uint32_t clr) {
  	*pix = clr;
 }
 
+uint32_t vga_getpixel(uint32_t x, uint32_t y) {
+    uint32_t* pix = (uint32_t)vga.frame + (vga.pitch * y) + (vga.bitdepth / 8) * x;
+    return *pix;
+}
+
 void vga_prims_box(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t clr) {
     size_t xi = 0;
     size_t yi = 0;

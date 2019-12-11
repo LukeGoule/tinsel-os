@@ -35,39 +35,12 @@ RealTimeClock* cls_clock = NULL;
 
 bool CMD_cls(int argc, char** argv) {
     vga_info_t* vga = vga_get_info();
-    uint32_t ox = cur.x;
-    uint32_t oy = cur.y;
     cur.x = 0;
     cur.y = 0;
 
     vga_prims_box(0, 0, vga->width, vga->height, 0x0);
-    vga_prims_box(0, 0, vga->width, CHAR_HEIGHT, 0xFFFFFF);
 
-    cur.bg_clr = 0xFFFFFF;
-    cur.fg_clr = 0x000000;
-    printf("tinsel OS || ");
-
-    if (!cls_clock) {
-		cls_clock = (RealTimeClock*)kmalloc(sizeof(RealTimeClock));
-	}
-
-	cls_clock->read_rtc();
-
-	if (cls_clock->minute < 10) {
-		printf("%d:0%d", cls_clock->hour, cls_clock->minute);
-	} else {
-		printf("%d:%d", cls_clock->hour, cls_clock->minute);
-	}
-
-	printf("\n");
-
-	return true;
-
-    cur.fg_clr = 0xFFFFFF;
-    cur.bg_clr = 0x000000;
-
-    cur.x = ox;
-    cur.y = CHAR_HEIGHT + 1;
+    return true;
 }
 
 /*

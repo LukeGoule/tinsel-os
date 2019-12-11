@@ -20,6 +20,7 @@ typedef struct vga_info_t {
 
 void vga_install    (multiboot_info_t* mbi);
 void vga_plotpixel  (uint32_t x, uint32_t y, uint32_t clr);
+uint32_t vga_getpixel(uint32_t x, uint32_t y);
 void vga_prims_box  (uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t clr);
 void vga_printc     (char c, uint32_t x, uint32_t y, uint32_t fg_clr, uint32_t bg_clr);
 vga_info_t*
