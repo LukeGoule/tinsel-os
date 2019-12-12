@@ -25,5 +25,6 @@ public:
 };
 
 bool CMD_Time(int argc, char** argv);
+void rtc_irq();
 
 #endif

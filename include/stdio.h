@@ -10,7 +10,7 @@
 #define outports    outportw
 #define inports     inportw
 
-struct cursor {
+typedef struct cursor_t {
     uint32_t x = 0;
     uint32_t y = CHAR_HEIGHT + 1;
 
@@ -18,9 +18,9 @@ struct cursor {
     uint32_t bg_clr = 0x000000; // black
 };
 
-typedef cursor cursor_t;
 
 void        safe_cursor_pos     ();
+cursor_t*   get_cursor          ();
 void        cursor_backspace    ();
 
 void        printf      (const char* format, ...);
@@ -35,6 +35,7 @@ void        strcpy      (char *d, char *s);
 size_t      strexplode  (char* string, char delimiter);
 char*       get_explode_output
                         (size_t index);
+void* memcpy(void* dstptr, const void* srcptr, size_t size);
 
 uint8_t     inportb     (uint16_t port);
 void        outportb    (uint16_t port, uint8_t data);

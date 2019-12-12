@@ -11,6 +11,7 @@
 #include <shell_cmd.h>
 #include <rtc.h>
 #include <ata.h>
+#include <ext2.h>
 #include <pci.h>
 #include <mouse.h>
 #include <windows.h>
@@ -118,7 +119,7 @@ void khandle_character(char* next_char) {
         (strcmp(next_char, "<RCTRL>") == 0)) return;
 
     if (next_char[0] == '\n') { // when the user presses enter, execute what they typed.
-        if (exec_cmd()) printf("tinsel> ");
+        if (exec_cmd()) printf("%s:%s# ", ide_drive_name(ata_get_main_dev()), ext2_current_dir());
     }
     else if (next_char[0] == '\b' && (iter > 0)) { // backspace
         cursor_backspace();
@@ -151,6 +152,9 @@ extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
     vga_install     (mbi);      // VGA Graphics stuff
     acpi_init       ();         // Enable ACPI for shutdown
     win_init        ();         // Setup the basic window manager
+    rtc_irq         ();
+    ata_init        ();
+    ext2_init       ();
 
     // Setup commands.
     KCreateCommand("help",          CMD_Help        /*shell_cmd.cpp*/,  "Show helptext of each command.");
@@ -169,13 +173,19 @@ extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
     KCreateCommand("ata",           CMD_ata         /*ata.cpp*/,        "Some ATA tests.");
     KCreateCommand("pci",           CMD_pci         /*pci.cpp*/,        "PCI bus controller (-D -B -S -RTL).");
     KCreateCommand("refresh",       CMD_refresh_win /*windows.cpp*/,    "Refresh the windows.");
+    KCreateCommand("cd",            CMD_cd          /*ext2.cpp*/,       "Change directory.");
+    KCreateCommand("ls",            CMD_ls          /*ext2.cpp*/,       "List files in current directory.");
+    KCreateCommand("cat",           CMD_cat         /*ext2.cpp*/,       "File read.");
+    KCreateCommand("nfile",         CMD_nfile       /*ext2.cpp*/,       "Create a new file.");
+    KCreateCommand("atainit",       CMD_atainit     /*ata.cpp*/,        "Initialise an ATA drive (ata_init <P/S> <M/S>)");
 
-    printf("%3tinsel v1%0 ready.\ntinsel> ");
+    //CMD_cls(0, 0);
+    printf("%3tinsel v1%0 ready.\n%s:%s# ", ide_drive_name(ata_get_main_dev()), ext2_current_dir());
 
     buf = (char*)kmalloc(MAX_INPUT_LEN);
 
     while (!die) {
-        win_main();
+        //win_main();
     }
 
     return;

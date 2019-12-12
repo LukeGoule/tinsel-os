@@ -25,6 +25,10 @@ void safe_cursor_pos() {
     }
 }
 
+cursor_t* get_cursor() {
+    return &cur;
+}
+
 void cursor_backspace() {
     cur.x -= (CHAR_WIDTH + 1);
     putc(' ');
@@ -36,7 +40,7 @@ RealTimeClock* cls_clock = NULL;
 bool CMD_cls(int argc, char** argv) {
     vga_info_t* vga = vga_get_info();
     cur.x = 0;
-    cur.y = 0;
+    cur.y = CHAR_HEIGHT + 1;
 
     vga_prims_box(0, 0, vga->width, vga->height, 0x0);
 
@@ -289,6 +293,14 @@ size_t strcmpl(const char* s1, const char* s2, size_t d) {
 void strcpy(char *d, char *s) {
    while(*d++ = *s++)
       ;
+}
+
+void* memcpy(void* dstptr, const void* srcptr, size_t size) {
+	unsigned char* dst = (unsigned char*) dstptr;
+	const unsigned char* src = (const unsigned char*) srcptr;
+	for (size_t i = 0; i < size; i++)
+		dst[i] = src[i];
+	return dstptr;
 }
 
 uint8_t inportb(uint16_t port) {

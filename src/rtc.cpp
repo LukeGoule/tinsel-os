@@ -1,6 +1,78 @@
 #include <rtc.h>
 #include <stdio.h>
 #include <memory.h>
+#include <ints/ints.h>
+
+RealTimeClock* rtc_instance = NULL;
+
+uint8_t rtc_reg(int reg) {
+	outportb(cmos_address, reg);
+	return (inportb(cmos_data));
+}
+
+// previous second, if it's not changed, then don't update the screen. doesn't need to be done
+// for any other registers.
+uint8_t _second 	= 0x00;
+
+extern "C" void cpp_rtc_handler() {
+	_DISABLE_INTS;
+
+	uint8_t second 	= rtc_reg(0x00);
+	second 	= (second & 0x0F) 	+ ((second / 16) * 10);
+	if (second == _second) {
+		// Read everything away so the PIC shuts up.
+		outportb(0x70, 0x0C);
+		inportb(0x71);
+
+		_END_OF_IRQ(8);
+		_ENABLE_INTS;
+
+		return;
+	} else {
+		_second = second;
+	}
+
+	uint8_t minute 	= rtc_reg(0x02);
+	minute 	= (minute & 0x0F) + ((minute / 16) * 10);
+
+	uint8_t hour 	= rtc_reg(0x04);
+	hour 	= (hour & 0x0F) + (((hour & 0x70) / 16) * 10) | (hour & 0x80);
+
+	uint8_t day 	= rtc_reg(0x07);
+	day 	= (day & 0x0F) + ((day / 16) * 10);
+
+	uint8_t month 	= rtc_reg(0x08);
+	month 	= (month & 0x0F) + ((month / 16) * 10);
+
+	uint8_t year 	= rtc_reg(0x09);
+	year 	= (year & 0x0F) + ((year / 16) * 10);
+
+	cursor_t* c = get_cursor();
+	uint32_t ox = c->x, oy = c->y;
+
+	/*
+	Code used here should execute only once per second, roughly on the second (+-1/1024 seconds)
+	I could time something here, which is always useful.
+	*/
+
+	c->x = 0;
+	c->y = 0;
+
+	// clear so we don't get the year showing as 199.
+	printf("                               "); c->x = 0; //go to the line start
+	printf("TINSEL V1 %d:%d:%d -- %d/%d/%d", hour, minute, second, day, month, year	);
+
+	// go back to where the cursor originally was.
+	c->x = ox;
+	c->y = oy;
+
+	outportb(0x70, 0x0C);	// select register C
+	inportb(0x71);			// just throw away contents
+
+	_END_OF_IRQ(8);
+	_ENABLE_INTS;
+}
+
 
 RealTimeClock::RealTimeClock() {
 
@@ -107,4 +179,14 @@ bool CMD_Time(int argc, char** argv) {
 	printf("\n");
 
 	return true;
+}
+
+void rtc_irq() {
+	// https://wiki.osdev.org/RTC
+	__asm__("cli");
+	outportb(0x70, 0x8B);			// select register B, and disable NMI
+    char prev = inportb(0x71);		// read the current value of register B
+    outportb(0x70, 0x8B);			// set the index again (a read will reset the index to register D)
+    outportb(0x71, prev | 0x40);	// write the previous value ORed with 0x40. This turns on bit 6 of register B
+	__asm__("sti");
 }

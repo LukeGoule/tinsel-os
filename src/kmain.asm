@@ -27,7 +27,6 @@ start:
 
     jmp $
 
-
 gdt_install:
 	lgdt [GDTP]
 
@@ -48,48 +47,14 @@ switch_pmode:
 
   	ret
 
-global kbd_int
-extern cpp_kbd_handler
-kbd_int:
-	pusha    ;; make sure you don't damage current state
-	;in al, 60
-
-	call cpp_kbd_handler
-
-	mov al,20h
-	out 20h,al  ;; acknowledge the interrupt to the PIC
-
-	popa     ;; restore state
-	iret        ;; return to code executed before.
-
-global mouse_int
-extern cpp_mouse_handler
-mouse_int:
-	pusha    	;; make sure you don't damage current state
-
-	call cpp_mouse_handler
-
-	popa     	;; restore state
-	iret        ;; return to code executed before.
-
-global null_handlr
-null_handlr:
-
-	mov al,20h
-	out 20h,al  ;; acknowledge the interrupt to the PIC
-
-	iret
-
 global tss_flush
 tss_flush:
 	mov ax, 0x2B
 	ltr ax
 	ret
 
-value:
-	dw 0h
 
-; Thank you indian man on YouTube who was kind enough to share with us his working code :)
+; Thank you Indian man on YouTube who was kind enough to share with us his working code :)
 GDT:
 	dq 00000000000000000h    	; null 8-bytes entrie
   	dw 0FFFFh      				; limit low word
