@@ -1,6 +1,8 @@
 # tinsel-os
 A re-write of v-os, just done to higher standards.
 
+24/7/2020: updated the makefile to add some notes for getting it up and running, removed some errors for when you aren't running this on a VM with a hard disk, looked at the "window" system a bit more.
+
 ## Notes:
 - Getting the ATA "driver" working was pretty cool. It can now read files from an ext2 formatted hard disk image. I moved to VirtualBox over Qemu for this since I couldn't get Qemu to emulate an IDE device. (Here's a link to the hard drive image I created: https://anonfile.com/j7F1daF0nd/ext2-4_vdi). Currently this OS has no practical application and I don't think it ever will since I don't want to waste time creating some SCSI driver. IDE is fine for now. Code samples from other GitHub projects have been used to create the ext2 and ide drivers since I didn't know what I was doing properly.
 
