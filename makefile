@@ -10,6 +10,8 @@
 #  - KVM enabled via your BIOS settings
 # If you get error code 009 on the Qemu BIOS, run "apt-get install grub-pc-bin" (without quotes)
 
+# To install all in one go try `sudo apt-get install qemu-system-i386 grub-pc-bin nasm grub2 xorriso -y`
+
 COMPILER  = g++
 LINKER    = ld
 ASSEMBLER = nasm
@@ -34,6 +36,9 @@ git:
 	@git add *
 	@git commit -m "Update $(KVERSION)"
 	@git push
+
+# AHHHH
+# I'm not using wildcards sorry. If you want me to, feel free to make a pull request with them.
 
 obj/kmainasm.o:src/kmain.asm
 	@$(ASSEMBLER) $(ASFLAGS) -o obj/kmainasm.o src/kmain.asm
@@ -75,6 +80,7 @@ obj/rtc.o:src/rtc.cpp
 	@$(COMPILER) $(CFLAGS) -o obj/rtc.o src/rtc.cpp
 	@echo "[COMPILE]: rtc.cpp"
 
+## CPP
 obj/icxxabi.o:src/icxxabi.cpp
 	@$(COMPILER) $(CFLAGS) -o obj/icxxabi.o src/icxxabi.cpp
 	@echo "[COMPILE]: icxxabi.cpp"
@@ -87,9 +93,9 @@ obj/isr.o:src/ints/isr.cpp
 	@$(COMPILER) $(CFLAGS) -o obj/isr.o src/ints/isr.cpp
 	@echo "[COMPILE]: ints/isr.cpp"
 
-obj/idt.o:src/ints/idt.cpp
-	@$(COMPILER) $(CFLAGS) -o obj/idt.o src/interrintsupts/idt.cpp
-	@echo "[COMPILE]: ints/idt.cpp"
+#obj/idt.o:src/ints/idt.cpp
+#	@$(COMPILER) $(CFLAGS) -o obj/idt.o src/interrintsupts/idt.cpp
+#	@echo "[COMPILE]: ints/idt.cpp"
 
 obj/pci.o:src/pci.cpp
 	@$(COMPILER) $(CFLAGS) -o obj/pci.o src/pci.cpp

@@ -1,3 +1,14 @@
+/*
+kmain.cpp - first properly commented file.
+
+    This file is the entry point for the C++ side of the operating system. It has all the system setting up / checks
+    and complex functions. It also contains a full command system, which should really have it's own files.
+
+    Note to self: read up..
+      https://www.aldeid.com/wiki/X86-assembly/Instructions/rdtsc
+      https://wiki.osdev.org/Model_Specific_Registers
+*/
+
 #include <cdefs.h>
 #include <kernel.h>
 #include <multiboot.h>
@@ -16,22 +27,20 @@
 #include <mouse.h>
 #include <windows.h>
 
+
+// kmain.asm
 extern "C" void gdt_install();
 
-multiboot_info_t* info = NULL;
-bool ata_enabled = false;
-
-// things to read:
-//  https://www.aldeid.com/wiki/X86-assembly/Instructions/rdtsc
-//  https://wiki.osdev.org/Model_Specific_Registers
-
-char* buf;
-uint32_t iter = 0;
-bool die = false;
+// I'd be making Terry A. Davis proud with my global vars.
+multiboot_info_t*   info        = NULL;
+bool                ata_enabled = false;
+char*               buf         = NULL;
+uint32_t            iter        = NULL;
+bool                die         = false;
 
 // Run the string entered by the user.
 bool exec_cmd() {
-    printf("\n"); // hackkk
+    printf("\n");
 
     bool cmd_found = false, output = true, understood = true;
     command_t current_cmd;
@@ -44,7 +53,7 @@ bool exec_cmd() {
         goto not_understood;
     }
 
-    argv = (char**)kmalloc(sizeof(char*) * argc); // im shook how well this works
+    argv = (char**)kmalloc(sizeof(char*) * argc);
 
     for (size_t i = 0; i < argc; i++) {
         argv[i] = get_explode_output(i);
@@ -59,13 +68,11 @@ bool exec_cmd() {
         goto not_understood;
     }
 
-    // ghetto ass label usage
-    not_understood:
+not_understood:
     if (!understood) {
         printf("[%2Error%0] Command '%s' was not understood.\n", argv[0]);
-    }/* code */
+    }
 
-    // wipe the buffer.
     for (size_t i = 0; i < MAX_INPUT_LEN; i++) {
         buf[i] = '\0';
     }
@@ -78,9 +85,9 @@ bool exec_cmd() {
 RealTimeClock* test_rtc;
 // basic kernel information
 bool CMD_Info(int argc, char** argv) {
-    size_t used_memory = kmalloc_used_bytes();
-    size_t used_blocks = kmalloc_used_blocks();
-    size_t unused_blocks = kmalloc_unused_blocks();
+    size_t used_memory      = kmalloc_used_bytes();
+    size_t used_blocks      = kmalloc_used_blocks();
+    size_t unused_blocks    = kmalloc_unused_blocks();
 
     if (!test_rtc) {
         test_rtc = new RealTimeClock();
@@ -104,7 +111,7 @@ bool CMD_Info(int argc, char** argv) {
 }
 
 bool CMD_ForceBreak(int argc, char** argv) {
-    int i = 0 / 0; // won't be caught by the compiler, causes an exception that //should// be ignored and continued on with.
+    int i = 0 / 0;
     return true;
 }
 
@@ -152,18 +159,39 @@ extern "C" void cpp_kbd_handler(void) {
 extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
     info = mbi;
 
-    memory_init     (0x100000); // Kernel memory manager
-    gdt_install     ();         // GDT
-    mouse_install   ();         // Talk to mouse (must be before ISR)
-    isr_init        ();         // ISR
-    vga_install     (mbi);      // VGA Graphics stuff
-    acpi_init       ();         // Enable ACPI for shutdown
-    win_init        ();         // Setup the basic window manager
+    // Initialise the memory manager with an offset of 0x100000 bytes from the end of the kernel.
+    memory_init     (0x100000);
+
+    // Setup the General Descriptor Table, which tells the computer how to map it's memory.
+    gdt_install     ();
+
+    // Setup the mouse via commands, this is only in it's testing phase right now and is VERY buggy.
+    mouse_install   ();
+
+    // Interrupt Service Routines, error handling effectively.
+    isr_init        ();
+
+    // I'm calling it VGA but really it's just a framebuffer being manipulated. There are no true VGA commands here.
+    vga_install     (mbi);
+
+    // Power management, without this we wouldn't be able to shut the system down.
+    acpi_init       ();
+
+    // Some "window" stuff I was working on. Not really something I want to continue with as a command line OS is just as good (imo).
+    win_init        ();
+
+    // Setup the interrupt for the Real Time Clock. This allows the clock at the top of the screen to change even while nothing is happening.
+    // It also enables us to time things to a second.
     rtc_irq         ();
+
+    // Check if the system can use ATA in it's current state.
     ata_enabled     = ata_init ();
+
+    // If ATA is enabled, try to load an EXT2 filesystem from the current ATA disk/drive.
     ext2_init       ();
 
-    // Setup commands.
+    // Setup command system.
+    //             CMD              Function        File                Short description
     KCreateCommand("help",          CMD_Help        /*shell_cmd.cpp*/,  "Show helptext of each command.");
     KCreateCommand("shutdown",      CMD_Shutdown    /*acpi.cpp*/,       "Shutdown the computer.");
     KCreateCommand("reboot",        CMD_reboot      /*acpi.cpp*/,       "Reboot the computer.");
@@ -196,10 +224,11 @@ extern "C" void kmain(unsigned int magic_number, multiboot_info_t* mbi) {
         printf("%3tinsel v1%0 ready.\nTiOS# ");
     }
 
+    // allocate a buffer for the keyboard input.
     buf = (char*)kmalloc(MAX_INPUT_LEN);
 
     while (!die) {
-        win_main();
+        win_main(); // update the window system as fast as possible. This isn't healthy for the CPU so maybe it should be every 1/60th of a second or so.
     }
 
     return;
